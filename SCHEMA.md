@@ -63,7 +63,7 @@ One config per split. `image` is an Image feature (128 px, lossless PNG proposed
 
 ## Repo (GitHub) **[decided in outline]**
 
-Loader (single random-access source for Grain and torch; optional on-device mode), metrics package (built as a prototype in `metrics/`, see `metrics/README.md`: clean FID, FD-DINOv2, KID, precision/recall/density/coverage, memorisation and mode-coverage checks, a meta-evaluation harness, experimental heads; palette/mask adherence and the human-agreement check are not done), the build scripts, and optionally a popularity-prior regressor, clearly labelled as such.
+The `afaces` package (src/afaces): backend-free loader core, a PyTorch DataLoader and a Grain source for JAX in separate extras, and a minimal metric set on DINOv2-L CLS features (FD, KID, density/coverage, memorisation fraction, palette adherence) with a shared pinned weight set for both backends; the build scripts. The prototype metrics package is archived in `archive/metrics-prototype/` and is not released.
 
 ## Open decisions
 
