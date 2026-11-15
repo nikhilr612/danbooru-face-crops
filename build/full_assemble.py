@@ -1,7 +1,7 @@
 """Full build, assembly: per-split arrays from build_data/selection.parquet.
 
 Usage: .envs/metrics/bin/python -I build/full_assemble.py OUT_DIR [LIMIT_PER_SPLIT]
-Writes OUT_DIR/<split>/*.npy (fields as in SCHEMA.md), OUT_DIR/<split>/meta.parquet, OUT_DIR/tags.json and OUT_DIR/thresholds_assemble.json.
+Writes OUT_DIR/<split>/*.npy (fields as in the loader docs), OUT_DIR/<split>/meta.parquet, OUT_DIR/tags.json and OUT_DIR/thresholds_assemble.json.
 Everything is derived from the selection, so a changed selection (rows dropped or backfilled) is a re-run, not a rebuild of the crops.
 Definitions chosen here (recorded in thresholds_assemble.json): hull masks as tinyflow's layouts (convex hulls of face / eyes / mouth landmarks, filled at 4x,
 area-averaged); mouth_fill = convex hull of the parse-mouth pieces whose centroid lies within 0.6 inter-ocular distances of the landmark mouth centre

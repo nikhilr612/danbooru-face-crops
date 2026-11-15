@@ -1,6 +1,6 @@
 # tags.npy list (proposal, 64 tags). Format: "group [exclusive] [colour]: tag tag ...".
 # "exclusive": at most one tag of the group is present per row (the highest probability wins, ties and sub-threshold rows are -1).
-# "colour": kept in the array for analysis, excluded from conditioning (SCHEMA decision).
+# "colour": kept in the array for analysis, excluded from conditioning.
 # Values: 1 present (WD probability >= 0.5), 0 absent (< 0.3), -1 unknown (0.3 to 0.5), on the 128 px crop. Left out on purpose: solo, 1girl (near-constant),
 # background tags (products of the background filter), breasts / large_breasts (body tags; the dataset is 45% rating s).
 gender: 1boy
