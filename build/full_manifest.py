@@ -21,7 +21,7 @@ with ThreadPoolExecutor(8) as ex:
     hashes = list(ex.map(sha, files))
 import pandas as pd
 rows = {k: int(v) for k, v in pd.read_parquet("build_data/selection.parquet", columns=["split"]).split.value_counts().items()}
-json.dump({"name": "anime-faces-128", "version": json.load(open(thr))["version"], "thresholds_sha256": sha(thr),
+json.dump({"name": "danbooru-face-crops-128", "version": json.load(open(thr))["version"], "thresholds_sha256": sha(thr),
            "rows": rows, "files": {str(p.relative_to(d)): {"bytes": p.stat().st_size, "sha256": h} for p, h in zip(files, hashes)}},
           open(d / "manifest.json", "w"), indent=1)
 print(len(files), "files hashed")

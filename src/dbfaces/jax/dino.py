@@ -3,7 +3,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from afaces import weights as W
+from dbfaces import weights as W
 
 
 def _ln(x, w, b):
@@ -26,7 +26,7 @@ LAYER_KEYS = ("n1w", "n1b", "n2w", "n2b", "qkv_w", "qkv_b", "o_w", "o_b", "ls1",
 
 
 def forward(p, m, u8):
-    """p: params from `afaces.weights.load_params` as jax arrays, m: resize matrix, u8: (B, H, W, 3) uint8 -> (B, 1024) CLS features."""
+    """p: params from `dbfaces.weights.load_params` as jax arrays, m: resize matrix, u8: (B, H, W, 3) uint8 -> (B, 1024) CLS features."""
     x = u8.astype(jnp.float32) / 255
     x = jnp.einsum("oh,pw,bhwc->bopc", m, m, x, precision="highest").clip(0, 1)
     x = (x - W.MEAN) / W.STD

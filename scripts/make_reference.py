@@ -1,4 +1,4 @@
-"""Compute the reference statistics (afaces.metrics.Reference) from a local release directory.
+"""Compute the reference statistics (dbfaces.metrics.Reference) from a local release directory.
 
     python scripts/make_reference.py RELEASE_DIR [--backend jax|torch] [--features-cache DIR]
 
@@ -11,9 +11,9 @@ from pathlib import Path
 
 import numpy as np
 
-import afaces
-from afaces import weights as W
-from afaces.metrics import Reference
+import dbfaces
+from dbfaces import weights as W
+from dbfaces.metrics import Reference
 
 
 def main():
@@ -24,15 +24,15 @@ def main():
     ap.add_argument("--limit", type=int)
     a = ap.parse_args()
     if a.backend == "jax":
-        from afaces.jax import DinoV2
-        from afaces.jax.metrics import max_cosine
+        from dbfaces.jax import DinoV2
+        from dbfaces.jax.metrics import max_cosine
     else:
-        from afaces.torch import DinoV2
-        from afaces.torch.metrics import max_cosine
+        from dbfaces.torch import DinoV2
+        from dbfaces.torch.metrics import max_cosine
     net = DinoV2()
     feats = {}
     for split in ("train", "val", "test"):
-        ds = afaces.load(a.release, split, fields=("image",))
+        ds = dbfaces.load(a.release, split, fields=("image",))
         n = min(len(ds), a.limit) if a.limit else len(ds)
         cache = Path(a.features_cache) / f"{split}.npy" if a.features_cache else None
         if cache and cache.exists() and len(np.load(cache, mmap_mode="r")) == n:
@@ -47,7 +47,7 @@ def main():
         if cache:
             cache.parent.mkdir(parents=True, exist_ok=True)
             np.save(cache, feats[split].astype(np.float16))
-    meta = {"model": W.REPO, "revision": W.REVISION, "sha256": W.SHA256, "backend": a.backend, "afaces": afaces.__version__,
+    meta = {"model": W.REPO, "revision": W.REVISION, "sha256": W.SHA256, "backend": a.backend, "package": f"dbfaces {dbfaces.__version__}",
             "dataset": json.loads((Path(a.release) / "manifest.json").read_text()).get("version", "unknown")}
     ref = Reference.build(feats["train"], feats["val"], meta, search=max_cosine)
     ref.save(a.release, feats)

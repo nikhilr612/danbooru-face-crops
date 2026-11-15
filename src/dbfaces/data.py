@@ -1,13 +1,13 @@
-"""Loader for the anime-faces 128 px dataset (memmapped .npy files, one per field, same row order in every file of a split).
+"""Loader for the Danbooru Face Crops 128 dataset (memmapped .npy files, one per field, same row order in every file of a split).
 
-    import afaces
-    ds = afaces.load("path/to/anime-faces-128", "train", fields=("image", "tags"))
-    ds = afaces.load("nikhilr01/danbooru-anime-faces-128-npy", "train", fields=("image", "tags"))   # downloads only those files, then memory-maps them
+    import dbfaces
+    ds = dbfaces.load("path/to/danbooru-face-crops-128", "train", fields=("image", "tags"))
+    ds = dbfaces.load("nikhilr01/danbooru-face-crops-128-npy", "train", fields=("image", "tags"))   # downloads only those files, then memory-maps them
     ds[0]                    # {"image": (128, 128, 3) uint8, "tags": (65,) int8}
     ds.batch(np.arange(64))  # fancy index (sorted internally), dict of arrays
     ds.subset(10_000)        # the first 10k rows: a nested stratified quick-eval subset
-    ds.torch()               # torch.utils.data.Dataset      (extra `torch`: afaces.torch)
-    ds.grain()               # random-access source for Grain (extra `jax`:   afaces.jax)
+    ds.torch()               # torch.utils.data.Dataset      (extra `torch`: dbfaces.torch)
+    ds.grain()               # random-access source for Grain (extra `jax`:   dbfaces.jax)
 """
 import json
 from pathlib import Path
@@ -59,13 +59,13 @@ class Split:
 
     def torch(self, **kw):
         """torch Dataset over this split (needs the `torch` extra)."""
-        from afaces.torch import Dataset
+        from dbfaces.torch import Dataset
 
         return Dataset(self, **kw)
 
     def grain(self, **kw):
         """Grain random-access source over this split (needs the `jax` extra)."""
-        from afaces.jax import Source
+        from dbfaces.jax import Source
 
         return Source(self, **kw)
 
@@ -83,7 +83,7 @@ def resolve(root, split: str | None = None, fields=()) -> Path:
 
 
 def load(root, split: str = "train", fields=("image",)) -> Split:
-    """`root` is a local directory or a Hub repo id such as "nikhilr01/danbooru-anime-faces-128-npy"."""
+    """`root` is a local directory or a Hub repo id such as "nikhilr01/danbooru-face-crops-128-npy"."""
     return Split(resolve(root, split, fields), split, fields)
 
 

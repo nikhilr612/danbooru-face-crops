@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.linalg
 
-from afaces.metrics import FD, Reference, density_coverage, frechet_distance, kid, knn_radii, memorised_fraction, threshold
+from dbfaces.metrics import FD, Reference, density_coverage, frechet_distance, kid, knn_radii, memorised_fraction, threshold
 
 
 def gauss(n, d=32, shift=0.0, scale=1.0, seed=0):
@@ -64,12 +64,12 @@ def test_evaluators_agree_across_backends(root):
 
     pytest.importorskip("torch")
     pytest.importorskip("jax")
-    import afaces
-    from afaces.jax import Evaluator as J
-    from afaces.torch import Evaluator as T
+    import dbfaces
+    from dbfaces.jax import Evaluator as J
+    from dbfaces.torch import Evaluator as T
 
     ref = Reference.load(root)
-    x = afaces.load(root, "test", fields=("image",))[:1000]["image"]
+    x = dbfaces.load(root, "test", fields=("image",))[:1000]["image"]
     out = []
     for E in (J, T):
         ev = E(ref)

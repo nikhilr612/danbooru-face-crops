@@ -21,7 +21,7 @@ from scipy import ndimage
 sys.path.insert(0, "build")
 
 from geometry import EYE_A, EYE_B, FACE, MOUTH, convex_hull  # noqa: E402
-from afaces.palette import extract as palette_extract  # noqa: E402
+from dbfaces.palette import extract as palette_extract  # noqa: E402
 import tagspec  # noqa: E402
 
 D = Path("build_data")

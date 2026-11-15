@@ -7,9 +7,9 @@ import json
 
 import numpy as np
 
-import afaces
-from afaces.metrics import Reference
-from afaces.weights import to_uint8
+import dbfaces
+from dbfaces.metrics import Reference
+from dbfaces.weights import to_uint8
 
 
 def blur(x, s):
@@ -25,12 +25,12 @@ def main():
     ap.add_argument("--n", type=int, nargs="+", default=[1000, 2000, 5000, 10000])
     a = ap.parse_args()
     if a.backend == "jax":
-        from afaces.jax import Evaluator
+        from dbfaces.jax import Evaluator
     else:
-        from afaces.torch import Evaluator
+        from dbfaces.torch import Evaluator
     ref = Reference.load(a.release)
     ev = Evaluator(ref)
-    test, train = afaces.load(a.release, "test", fields=("image",)), afaces.load(a.release, "train", fields=("image",))
+    test, train = dbfaces.load(a.release, "test", fields=("image",)), dbfaces.load(a.release, "train", fields=("image",))
     out = {"real_vs_real_test": {}, "problems_N2000": {}}
     for n in a.n:
         ev.reset()

@@ -1,17 +1,17 @@
 import numpy as np
 
-import afaces
-from afaces import palette as P
+import dbfaces
+from dbfaces import palette as P
 
 
 def test_extract_reproduces_the_shipped_field(root):
-    r = afaces.load(root, "val", fields=("image", "parse", "palette", "palette_valid"))[:100]
+    r = dbfaces.load(root, "val", fields=("image", "parse", "palette", "palette_valid"))[:100]
     p, v = P.extract(r["image"], r["parse"])
     assert np.allclose(p.reshape(100, 32), r["palette"], atol=1e-5) and (v == r["palette_valid"]).all()
 
 
 def test_own_palette_beats_other_palettes(root):
-    r = afaces.load(root, "val", fields=("image", "parse", "palette", "palette_valid"))[:300]
+    r = dbfaces.load(root, "val", fields=("image", "parse", "palette", "palette_valid"))[:300]
     pal, val = r["palette"].reshape(300, 4, 8), r["palette_valid"]
     own = P.adherence(r["image"], r["parse"], pal, val, np.array([P.CHANCE[k] for k in P.REGIONS]))
     perm = np.random.default_rng(0).permutation(300)

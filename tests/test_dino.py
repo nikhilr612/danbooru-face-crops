@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from afaces import weights as W
+from dbfaces import weights as W
 
 ROOT_FIELDS = ("image",)
 
@@ -18,9 +18,9 @@ def test_bicubic_matches_torch():
 
 @pytest.fixture(scope="module")
 def images(root):
-    import afaces
+    import dbfaces
 
-    return afaces.load(root, "val", fields=ROOT_FIELDS)[:48]["image"]
+    return dbfaces.load(root, "val", fields=ROOT_FIELDS)[:48]["image"]
 
 
 def rel(a, b):
@@ -32,8 +32,8 @@ def test_matches_transformers_float64(images):
     torch = pytest.importorskip("torch")
     tr = pytest.importorskip("transformers")
     pytest.importorskip("jax")
-    from afaces.jax.dino import DinoV2 as J
-    from afaces.torch.dino import DinoV2 as T
+    from dbfaces.jax.dino import DinoV2 as J
+    from dbfaces.torch.dino import DinoV2 as T
 
     ref_model = tr.Dinov2Model.from_pretrained(W.REPO, revision=W.REVISION, dtype=torch.float64).eval()
     x = torch.from_numpy(images).permute(0, 3, 1, 2).double() / 255
@@ -49,8 +49,8 @@ def test_matches_transformers_float64(images):
 def test_jax_matches_torch(images):
     pytest.importorskip("jax")
     pytest.importorskip("torch")
-    from afaces.jax.dino import DinoV2 as J
-    from afaces.torch.dino import DinoV2 as T
+    from dbfaces.jax.dino import DinoV2 as J
+    from dbfaces.torch.dino import DinoV2 as T
 
     a, b = J().features(images), T().features(images)
     assert rel(a, b).max() < 1e-4, rel(a, b).max()

@@ -1,7 +1,7 @@
 """Grain random-access source and DataLoader over a Split."""
 import grain.python as gp
 
-from afaces.data import Split, numeric
+from dbfaces.data import Split, numeric
 
 
 class Source:
