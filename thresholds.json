@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "frozen": "2026-11-15",
+  "source": {"dataset": "deepghs/danbooru2024-sfw", "snapshot_last_commit": "2024-11-18", "ratings": ["g", "s"]},
+  "metadata_filter": {"still_image": true, "not_deleted_pending_flagged": true, "tags": "solo and (1girl or 1boy), no excluded style/quality tag", "short_side_min": 512,
+                      "rating_s_exclusion_list": "build/s_exclude_tags.txt (87 tags)", "rating_s_prefilter": "carries a plain-background tag"},
+  "face": {"detector": "hysts/anime-face-detector (yolov3) + deepghs anime_face_detection v1.4s", "hysts_min_score": 0.25, "exactly_one_face": true, "unmatched_second_detector_box": "reject", "min_face_px": 160},
+  "frame": {"window_side_in_longer_face_sides": 2.4, "centre_above_face_centre_in_face_sides": 0.2, "shift_inside_image": true, "pad": false, "drop_if_larger_than_short_side": true, "resize": "Lanczos area, 128 px"},
+  "background": {"score": "fit2_med (median worst-channel residual of a quadratic surface fit to eroded parse-background pixels, erosion 2, min 75 px)", "max": 0.03, "relaxed_to": null},
+  "text": {"ocr_box_score_min": 0.7, "or_detect_text_score_min": 0.1, "crop_upsampled_to": 512},
+  "tagger_flags": {"threshold": 0.5, "tags": {
+    "text": ["signature", "watermark", "artist_name", "twitter_username", "web_address", "logo", "copyright_name", "english_text", "chinese_text", "korean_text", "speech_bubble", "character_name", "dated"],
+    "layout": ["border", "letterboxed", "pillarboxed", "multiple_views", "split_screen", "comic", "multiple_girls", "2girls", "multiple_boys", "2boys", "no_humans"],
+    "style": ["monochrome", "greyscale", "sketch", "lineart", "chibi", "realistic"],
+    "content": ["blood", "nude", "topless", "nipples", "covered_nipples", "cleavage", "underwear", "bikini", "censored"]}},
+  "dedup": {"embedding": "facebook/dinov2-base CLS, 224 px", "cosine_drop_at": 0.97, "keep": "highest score, then cleanest background", "group_for_split_at": 0.93},
+  "caps": {"artist": 300, "character": 1500, "copyright_share_of_total": 0.08, "exempt": ["unknown artist", "no character", "original"], "order": "popularity score, rating g before s"},
+  "selection": {"total": 210000, "order": "all rating g, then rating s drawn at random to the quota", "split": {"train": 150000, "validation": 30000, "test": 30000},
+                "split_rule": "near-duplicate groups (>= 0.93) stay whole; per stratum (rating, hair colour class, eye colour class) proportional; rows ordered so every prefix is a stratified sample"},
+  "tags": {"file": "tags.json", "present_min": 0.5, "absent_max": 0.3, "positive_only_if_recall_below": 0.5, "reliability_reference": "Danbooru tags on a random 40,000 selected posts"},
+  "flags": {"bit0": "profile proxy: tagger from_side >= 0.5", "bit1": "mouth parse missing: landmark hull used for mouth_fill", "bit2": "frame shifted: face-box centre more than 3 px from the frame rule's target"},
+  "mouth_fill": {"parse_class": 9, "pieces_within_inter_ocular_distances": 0.6, "fallback": "landmark mouth hull"},
+  "hull": {"groups": "face = landmarks 0-10, eyes = 11-16 and 17-22, mouth = 24-27", "supersample": 4},
+  "not_applied": ["live Danbooru re-check (deleted, banned, opt-out since 2024-11-18): skipped by the owner's decision", "sha256 of the source files (md5 from Danbooru metadata only)"]
+}

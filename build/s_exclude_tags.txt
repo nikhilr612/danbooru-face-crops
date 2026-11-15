@@ -1,0 +1,95 @@
+# Conservative exclusion list for rating-s candidates (drafted 2026-11-12; a post carrying any of these tags is not fetched).
+# Format: one tag per line, "# group" comments. Edit freely; build/full_s_ids.py reads this file and reports per-tag removals.
+# nudity / near-nudity
+nude
+topless
+bottomless
+naked_shirt
+naked_apron
+naked_towel
+naked_ribbon
+naked_cape
+naked_coat
+naked_tabard
+completely_nude
+partially_undressed
+convenient_censoring
+nipples
+covered_nipples
+nipple_slip
+areolae
+areola_slip
+bare_breasts
+breasts_out
+no_bra
+nopan
+no_panties
+pussy
+anus
+penis
+testicles
+pubic_hair
+cameltoe
+cleavage
+breast_grab
+grabbing_own_breast
+# underwear / swimwear / revealing clothing
+underwear
+panties
+bra
+lingerie
+bikini
+micro_bikini
+slingshot_swimsuit
+g-string
+panty_peek
+pantyshot
+upskirt
+see-through
+pasties
+maebari
+# suggestive pose / content
+sex
+oral
+fellatio
+cum
+semen
+ejaculation
+masturbation
+fingering
+bondage
+bdsm
+ball_gag
+shibari
+spread_pussy
+presenting
+ahegao
+orgasm
+fucked_silly
+aroused
+sexually_suggestive
+suggestive
+fetish
+nsfw
+erotic
+ecchi
+# minors with suggestive context
+loli
+shota
+toddler
+# violence / disturbing
+blood
+blood_on_face
+guro
+gore
+corpse
+suicide
+self-harm
+stabbed
+impaled
+decapitation
+dismemberment
+severed_head
+severed_limb
+beaten
+# other unsuitable

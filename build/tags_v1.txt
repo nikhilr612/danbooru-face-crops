@@ -1,0 +1,14 @@
+# tags.npy list (proposal, 64 tags). Format: "group [exclusive] [colour]: tag tag ...".
+# "exclusive": at most one tag of the group is present per row (the highest probability wins, ties and sub-threshold rows are -1).
+# "colour": kept in the array for analysis, excluded from conditioning (SCHEMA decision).
+# Values: 1 present (WD probability >= 0.5), 0 absent (< 0.3), -1 unknown (0.3 to 0.5), on the 128 px crop. Left out on purpose: solo, 1girl (near-constant),
+# background tags (products of the background filter), breasts / large_breasts (body tags; the dataset is 45% rating s).
+gender: 1boy
+hair_length exclusive: short_hair medium_hair long_hair
+hair_style: ponytail twintails braid twin_braids hair_bun side_ponytail ahoge hair_between_eyes sidelocks blunt_bangs hair_over_one_eye multicolored_hair two-tone_hair
+hair_colour colour: black_hair brown_hair blonde_hair blue_hair white_hair pink_hair grey_hair purple_hair red_hair green_hair orange_hair
+eye_colour colour: blue_eyes red_eyes purple_eyes brown_eyes green_eyes yellow_eyes pink_eyes
+expression: smile open_mouth closed_mouth parted_lips blush grin teeth one_eye_closed closed_eyes :d
+gaze_pose: looking_at_viewer looking_back from_side head_tilt
+accessories: hair_ornament hair_bow hair_ribbon hairband hairclip hat glasses earrings choker halo animal_ears pointy_ears horns
+clothing: school_uniform collared_shirt necktie
