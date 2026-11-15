@@ -20,7 +20,7 @@ def test_bicubic_matches_torch():
 def images(root):
     import dbanifaces
 
-    return dbanifaces.load(root, "val", fields=ROOT_FIELDS)[:48]["image"]
+    return dbanifaces.load("val", fields=ROOT_FIELDS, root=root)[:48]["image"]
 
 
 def rel(a, b):

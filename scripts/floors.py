@@ -30,7 +30,7 @@ def main():
         from dbanifaces.torch import Evaluator
     ref = Reference.load(a.release)
     ev = Evaluator(ref)
-    test, train = dbanifaces.load(a.release, "test", fields=("image",)), dbanifaces.load(a.release, "train", fields=("image",))
+    test, train = dbanifaces.load("test", fields=("image",), root=a.release), dbanifaces.load("train", fields=("image",), root=a.release)
     out = {"real_vs_real_test": {}, "problems_N2000": {}}
     for n in a.n:
         ev.reset()

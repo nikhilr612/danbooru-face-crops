@@ -69,7 +69,7 @@ def test_evaluators_agree_across_backends(root):
     from dbanifaces.torch import Evaluator as T
 
     ref = Reference.load(root)
-    x = dbanifaces.load(root, "test", fields=("image",))[:1000]["image"]
+    x = dbanifaces.load("test", fields=("image",), root=root)[:1000]["image"]
     out = []
     for E in (J, T):
         ev = E(ref)

@@ -32,7 +32,7 @@ def main():
     net = DinoV2()
     feats = {}
     for split in ("train", "val", "test"):
-        ds = dbanifaces.load(a.release, split, fields=("image",))
+        ds = dbanifaces.load(split, fields=("image",), root=a.release)
         n = min(len(ds), a.limit) if a.limit else len(ds)
         cache = Path(a.features_cache) / f"{split}.npy" if a.features_cache else None
         if cache and cache.exists() and len(np.load(cache, mmap_mode="r")) == n:

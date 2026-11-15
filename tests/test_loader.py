@@ -5,20 +5,20 @@ import dbanifaces
 
 
 def test_core(root):
-    ds = dbanifaces.load(root, "val", fields=("image", "tags", "post_id", "flags"))
+    ds = dbanifaces.load("val", fields=("image", "tags", "post_id", "flags"), root=root)
     assert len(ds) == len(np.load(f"{root}/val/post_id.npy", mmap_mode="r"))
     r = ds[3]
     assert r["image"].shape == (128, 128, 3) and r["image"].dtype == np.uint8 and r["tags"].dtype == np.int8
     b = ds.batch(np.array([5, 1, 5, 0]))
     assert (b["post_id"] == [ds[5]["post_id"], ds[1]["post_id"], ds[5]["post_id"], ds[0]["post_id"]]).all()
     assert len(ds.subset(100)) == 100 and len(ds[2:6]["image"]) == 4
-    assert len(dbanifaces.reliable_tags(root)) == 43
+    assert len(dbanifaces.reliable_tags(root=root)) == 43
 
 
 def test_pickle_is_small(root):
     import pickle
 
-    ds = dbanifaces.load(root, "val", fields=("image",))
+    ds = dbanifaces.load("val", fields=("image",), root=root)
     assert len(pickle.dumps(ds)) < 2000 and (pickle.loads(pickle.dumps(ds))[7]["image"] == ds[7]["image"]).all()
 
 
@@ -26,7 +26,7 @@ def test_torch(root):
     torch = pytest.importorskip("torch")
     from dbanifaces.torch import dataloader
 
-    ds = dbanifaces.load(root, "val", fields=("image", "rating", "post_id"))
+    ds = dbanifaces.load("val", fields=("image", "rating", "post_id"), root=root)
     a = next(iter(dataloader(ds, 16, shuffle=True, seed=1)))
     b = next(iter(dataloader(ds, 16, shuffle=True, seed=1)))
     assert a["image"].shape == (16, 128, 128, 3) and a["image"].dtype == torch.uint8 and a["rating"].dtype == torch.uint8
@@ -41,7 +41,7 @@ def test_grain(root):
     pytest.importorskip("grain")
     from dbanifaces.jax import loader
 
-    ds = dbanifaces.load(root, "val", fields=("image", "rating", "post_id"))
+    ds = dbanifaces.load("val", fields=("image", "rating", "post_id"), root=root)
     first = [b["post_id"] for b in loader(ds, 8, shuffle=False, num_epochs=1, shard=False)]
     assert len(first) == len(ds) // 8 and (first[0] == ds.batch(np.arange(8))["post_id"]).all()
     a = next(iter(loader(ds, 16, seed=3, shard=False)))
@@ -50,3 +50,13 @@ def test_grain(root):
     # with workers, Grain gives each worker every second record and batches inside the worker: same rows, different batch order
     w = [np.asarray(b["post_id"]).copy() for b in loader(ds.subset(64), 8, shuffle=False, shard=False, worker_count=2)]
     assert sorted(np.concatenate(w)) == sorted(ds.batch(np.arange(64))["post_id"])
+
+
+def test_default_root_order(root, monkeypatch):
+    monkeypatch.delenv("DBANIFACES_ROOT", raising=False)
+    assert dbanifaces.default_root() == dbanifaces.DEFAULT_REPO
+    monkeypatch.setenv("DBANIFACES_ROOT", root)
+    assert dbanifaces.default_root() == root and dbanifaces.default_root("elsewhere") == "elsewhere"
+    ds = dbanifaces.load("val", fields=("post_id",))  # no root: DBANIFACES_ROOT is used, nothing is downloaded
+    assert len(ds) == len(np.load(f"{root}/val/post_id.npy", mmap_mode="r"))
+    assert len(dbanifaces.reliable_tags(("high",))) == 43

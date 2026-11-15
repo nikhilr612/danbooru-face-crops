@@ -45,8 +45,11 @@ class Reference:
             np.save(d / FEATURES.format(split), np.asarray(f, np.float16))
 
     @classmethod
-    def load(cls, root: str | Path = "nikhilr01/danbooru-face-crops-128-npy") -> "Reference":
-        """`root`: a local release directory or the Hub repo id of the npy release (downloads the small stats file only)."""
+    def load(cls, root: str | Path | None = None) -> "Reference":
+        """`root`: a local release directory or the Hub repo id of the npy release (downloads the small stats file only); default as in `dbanifaces.default_root`."""
+        from dbanifaces.data import default_root
+
+        root = default_root(root)
         d = _fetch(root, [STATS])
         z = np.load(d / STATS)
         return cls(FD(z["mu"], z["sigma"]), z["real"], z["radii"], float(z["mem_thr"]), json.loads(str(z["meta"])), root)

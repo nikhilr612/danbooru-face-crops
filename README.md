@@ -24,15 +24,15 @@ The base install needs only numpy and scipy. Everything else is an extra, and no
 ```python
 import dbanifaces
 
-ds = dbanifaces.load("nikhilr01/danbooru-face-crops-128-npy", "train", fields=("image", "tags"))   # splits: train, val, test
-ds = dbanifaces.load("path/to/danbooru-face-crops-128", "train", fields=("image", "tags"))                  # or a local copy
+ds = dbanifaces.load("train", fields=("image", "tags"))                       # splits: train, val, test; the official release from the Hub
+ds = dbanifaces.load("train", fields=("image", "tags"), root="/data/faces")  # a local copy, or another Hub repo id
 ds[0]                      # {"image": (128, 128, 3) uint8, "tags": (65,) int8}
 ds.batch(np.arange(64))    # fancy-indexed batch (one sorted read)
 ds.subset(10_000)          # nested stratified quick-eval subset (every prefix of a split is stratified)
-dbanifaces.reliable_tags(root, tiers=("high",))    # tag columns with AUC >= 0.97
+dbanifaces.reliable_tags(("high",))    # tag columns with AUC >= 0.97
 ```
 
-Given a Hub repo id, only the files for the split and fields you ask for are downloaded, then memory-mapped from the cache. Fields: `image`, `hull`, `parse`, `mouth_fill`, `landmarks`, `palette`, `palette_valid`, `tags`, `crop_box`, `group`, `bg_score`, `flags`, `post_id`, `rating`, `score`, `fav_count`, `created_year`, `popularity_pct`; strings and ragged data are in `meta.parquet` per split. `tags.json` gives tag names (columns are ordered by reliability), groups, AUC / precision / recall, tier and which tags are positive-only.
+Without `root`, the `DBANIFACES_ROOT` environment variable is used if set (a local copy or a repo id), else the official release `dbanifaces.DEFAULT_REPO`. Given a Hub repo id, only the files for the split and fields you ask for are downloaded, then memory-mapped from the cache. Fields: `image`, `hull`, `parse`, `mouth_fill`, `landmarks`, `palette`, `palette_valid`, `tags`, `crop_box`, `group`, `bg_score`, `flags`, `post_id`, `rating`, `score`, `fav_count`, `created_year`, `popularity_pct`; strings and ragged data are in `meta.parquet` per split. `tags.json` gives tag names (columns are ordered by reliability), groups, AUC / precision / recall, tier and which tags are positive-only.
 
 **PyTorch** (`dbanifaces.torch`): a `Dataset` that reads whole batches with one sorted index, and a `DataLoader` helper.
 
