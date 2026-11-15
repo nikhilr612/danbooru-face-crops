@@ -2,7 +2,7 @@ import numpy as np
 import scipy.linalg
 
 from dbanifaces.metrics import FD, Reference, density_coverage, frechet_distance, kid, knn_radii, memorised_fraction, threshold
-from dbanifaces.metrics.headline import copy_excess, fit_floor, headline, solve_tau
+from dbanifaces.metrics.headline import copy_excess, floor_fd, headline, solve_tau
 
 
 def gauss(n, d=32, shift=0.0, scale=1.0, seed=0):
@@ -60,18 +60,35 @@ def test_reference_roundtrip(tmp_path):
 
 
 def test_headline_anchors():
-    ns = np.array([1000, 2000, 5000, 10000])
-    a, b = fit_floor(ns, 5 + 80_000 / ns)
-    assert abs(a - 5) < 1e-6 and abs(b - 80_000) < 1e-3
-    p = {"a": a, "b": b, "tau": solve_tau(3000.0, 10_000, a, b)}
-    n = 10_000
-    floor = a + b / n
+    ns = [1000, 2000, 5000, 10000]
+    fds = [5 + 80_000 / n for n in ns]
+    assert all(abs(floor_fd(n, ns, fds) - f) < 1e-9 for n, f in zip(ns, fds))  # exact at the measured points
+    assert fds[1] > floor_fd(3000, ns, fds) > fds[2] and floor_fd(500, ns, fds) > fds[0] and floor_fd(20000, ns, fds) < fds[3]  # monotone between and beyond
+    p = {"floor_n": ns, "floor_fd": fds, "tau": solve_tau(3000.0, 10_000, ns, fds)}
+    n, floor = 10_000, fds[3]
     assert headline(floor, 0.0095, n, p) == 0.0  # real data: FD at the floor, copying at its calibrated rate (inside the tolerance)
     assert headline(floor - 1.0, 0.0, n, p) == 0.0  # better than the floor is not rewarded
     noise, copies = headline(3000.0, 0.0, n, p), headline(floor, 1.0, n, p)
     assert abs(noise - copies) < 1e-9 and noise > 3  # copying the training set is exactly as bad as noise
     assert headline(floor, 0.2, n, p) < copies < headline(floor + 1e3, 1.0, n, p)  # monotone in both terms
     assert copy_excess(0.01, 100) == 0.0 and copy_excess(0.5, 100) > 0
+
+
+def test_reference_split(tmp_path):
+    train, val, test = gauss(3000, 16, seed=1), gauss(2000, 16, shift=0.1, seed=2), gauss(2000, 16, shift=-0.1, seed=3)
+    ref = Reference.build(train, val, {"headline": {"val": {"tau": 0.3, "floor_n": [10, 20], "floor_fd": [2.0, 1.0]}}})
+    ref.save(tmp_path, {"train": train, "val": val, "test": test})
+    base, v = Reference.load(tmp_path), Reference.load(tmp_path, split="val")
+    assert base.split == "train" and base.headline_params is None and v.split == "val" and v.headline_params["tau"] == 0.3
+    assert np.allclose(v.fd.mu, val.astype(np.float16).astype(np.float64).mean(0)) and v.mem_thr == base.mem_thr and v.bank.shape == base.bank.shape
+    fresh = gauss(2000, 16, shift=0.1, seed=9)  # a new draw from the val distribution
+    assert v.fd(fresh) < base.fd(fresh)  # the val reference sits at val, not at train
+    try:
+        Reference.load(tmp_path, split="dev")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError
 
 
 def test_evaluators_agree_across_backends(root):

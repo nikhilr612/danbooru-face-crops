@@ -46,6 +46,6 @@ class Evaluator:
             out |= density_coverage(self.ref.real, self.ref.radii, f, self.ref.meta["k"])
         if "memorisation" in metrics:
             out["memorised_frac"] = memorised_fraction(f, self.ref.bank, self.ref.mem_thr, self.search)
-        if "fd_dinov2" in out and "memorised_frac" in out and "headline" in self.ref.meta:
-            out["headline"] = headline(out["fd_dinov2"], out["memorised_frac"], len(f), self.ref.meta["headline"])
+        if "fd_dinov2" in out and "memorised_frac" in out and self.ref.headline_params:
+            out["headline"] = headline(out["fd_dinov2"], out["memorised_frac"], len(f), self.ref.headline_params)
         return out

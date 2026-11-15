@@ -25,6 +25,7 @@ class Reference:
     mem_thr: float
     meta: dict
     root: Path | str = field(default="", repr=False)
+    split: str = "train"
     _bank: np.ndarray | None = field(default=None, repr=False)
 
     @classmethod
@@ -45,14 +46,30 @@ class Reference:
             np.save(d / FEATURES.format(split), np.asarray(f, np.float16))
 
     @classmethod
-    def load(cls, root: str | Path | None = None) -> "Reference":
-        """`root`: a local release directory or the Hub repo id of the npy release (downloads the small stats file only); default as in `dbanifaces.default_root`."""
-        from dbanifaces.data import default_root
+    def load(cls, root: str | Path | None = None, split: str = "train") -> "Reference":
+        """`root`: a local release directory or the Hub repo id of the npy release (downloads the small stats file only); default as in `dbanifaces.default_root`.
 
+        `split`: which split the real-data statistics (FD, KID, density and coverage) describe. "train" is the default and the usual one. "val" or "test" rebuild them from that split's cached
+        features (about 60 MB, downloaded on first use), so a model can be selected against "val" and reported once against "test", neither of which it was trained on. The memorisation
+        bank and threshold are always the train split's, and the headline parameters are those fitted for the chosen split."""
+        from dbanifaces.data import SPLITS, default_root
+
+        if split not in SPLITS:
+            raise ValueError(f"split must be one of {SPLITS}")
         root = default_root(root)
         d = _fetch(root, [STATS])
         z = np.load(d / STATS)
-        return cls(FD(z["mu"], z["sigma"]), z["real"], z["radii"], float(z["mem_thr"]), json.loads(str(z["meta"])), root)
+        ref = cls(FD(z["mu"], z["sigma"]), z["real"], z["radii"], float(z["mem_thr"]), json.loads(str(z["meta"])), root)
+        if split != "train":
+            f = np.asarray(ref.features(split), np.float32)
+            ref.fd, ref.real, ref.split = FD.from_features(f), f[:REAL_N], split
+            ref.radii = knn_radii(ref.real, K)
+        return ref
+
+    @property
+    def headline_params(self) -> dict | None:
+        """{"a", "b", "tau"} of `dbanifaces.metrics.headline` for this split, or None if the reference has none."""
+        return self.meta.get("headline", {}).get(self.split)
 
     def features(self, split: str) -> np.ndarray:
         """float16 CLS features of every row of `split`, memory-mapped (downloaded on first use)."""
