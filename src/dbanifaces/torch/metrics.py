@@ -2,9 +2,9 @@
 import numpy as np
 import torch
 
-from dbfaces.metrics import Evaluator as _Evaluator
-from dbfaces.metrics import Reference
-from dbfaces.torch.dino import DinoV2
+from dbanifaces.metrics import Evaluator as _Evaluator
+from dbanifaces.metrics import Reference
+from dbanifaces.torch.dino import DinoV2
 
 
 def max_cosine(query, bank, chunk: int = 4096, device=None) -> np.ndarray:

@@ -35,7 +35,7 @@ def bicubic_matrix(n_in: int, n_out: int, a: float = -0.75) -> np.ndarray:
 def _path() -> Path:
     from huggingface_hub import hf_hub_download
 
-    p = Path(os.environ.get("DBFACES_DINOV2") or hf_hub_download(REPO, "model.safetensors", revision=REVISION))
+    p = Path(os.environ.get("DBANIFACES_DINOV2") or hf_hub_download(REPO, "model.safetensors", revision=REVISION))
     h = hashlib.sha256()
     with open(p, "rb") as f:
         while chunk := f.read(1 << 24):

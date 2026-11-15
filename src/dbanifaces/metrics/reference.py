@@ -10,8 +10,8 @@ from pathlib import Path
 
 import numpy as np
 
-from dbfaces.metrics.fd import FD
-from dbfaces.metrics.prdc import knn_radii
+from dbanifaces.metrics.fd import FD
+from dbanifaces.metrics.prdc import knn_radii
 
 STATS, FEATURES = "reference/dinov2l_stats.npz", "reference/dinov2l_{}.npy"
 REAL_N, K, QUANTILE = 10_000, 5, 0.01
@@ -30,7 +30,7 @@ class Reference:
     @classmethod
     def build(cls, train: np.ndarray, heldout: np.ndarray, meta: dict | None = None, search=None) -> "Reference":
         """`train`, `heldout` (validation): (N, 1024) CLS features. `search` is a (query, bank) -> max cosine function (default numpy; pass a GPU one for 150k rows)."""
-        from dbfaces.metrics.memorisation import max_cosine, threshold
+        from dbanifaces.metrics.memorisation import max_cosine, threshold
 
         real = np.asarray(train[:REAL_N], np.float32)
         return cls(FD.from_features(train), real, knn_radii(real, K), threshold(heldout, train, QUANTILE, search or max_cosine),

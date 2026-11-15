@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 
-from dbfaces.data import Split, numeric
+from dbanifaces.data import Split, numeric
 
 
 class Dataset(torch.utils.data.Dataset):

@@ -1,17 +1,17 @@
 """Streaming evaluator for a training loop: feed generated batches, read the scores."""
 import numpy as np
 
-from dbfaces.metrics.kid import kid
-from dbfaces.metrics.memorisation import max_cosine, memorised_fraction
-from dbfaces.metrics.prdc import density_coverage
-from dbfaces.metrics.reference import Reference
-from dbfaces.weights import to_uint8
+from dbanifaces.metrics.kid import kid
+from dbanifaces.metrics.memorisation import max_cosine, memorised_fraction
+from dbanifaces.metrics.prdc import density_coverage
+from dbanifaces.metrics.reference import Reference
+from dbanifaces.weights import to_uint8
 
 ALL = ("fd", "kid", "density_coverage", "memorisation")
 
 
 class Evaluator:
-    """`dbfaces.torch.Evaluator` and `dbfaces.jax.Evaluator` bind the DINOv2 extractor and GPU search for you; this class takes any `featurize(uint8 NHWC) -> (B, 1024)`.
+    """`dbanifaces.torch.Evaluator` and `dbanifaces.jax.Evaluator` bind the DINOv2 extractor and GPU search for you; this class takes any `featurize(uint8 NHWC) -> (B, 1024)`.
 
         ev = Evaluator(featurize, Reference.load())
         for batch in samples: ev.update(batch)   # uint8 NHWC, or float [-1, 1]

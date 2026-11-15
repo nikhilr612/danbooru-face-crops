@@ -13,7 +13,7 @@ def parse(images, device: str | None = None, batch: int = 16) -> np.ndarray:
         import torch.nn.functional as F
         from anime_seg import AnimeSegPipeline
     except ImportError as e:
-        raise ImportError("dbfaces.seg needs the `seg` extra (pip install 'dbfaces[seg]'), which installs anime-seg and torch") from e
+        raise ImportError("dbanifaces.seg needs the `seg` extra (pip install 'dbanifaces[seg]'), which installs anime-seg and torch") from e
     dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
     mean, std = (torch.tensor(v).view(1, 3, 1, 1).to(dev) for v in ([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]))
     model = AnimeSegPipeline.from_dinoV2().to(dev).model.eval()

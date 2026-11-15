@@ -1,5 +1,5 @@
 """Per-region colour palettes in OKLab and a palette-adherence metric. Pure numpy/scipy; the parse maps come from anime-seg run on the 128 px image
-(`dbfaces.seg.parse`, extra `seg`), so the dataset field and the metric use one extractor on one input resolution.
+(`dbanifaces.seg.parse`, extra `seg`), so the dataset field and the metric use one extractor on one input resolution.
 
 Layout, 8 values per region (schema: skin, hair, eyes, background -> 32 dims):
     [L1, a1, b1, L2, a2, b2, w2, area]   primary colour, secondary colour and its weight (0 = flat region, secondary == primary), area share of the crop.
@@ -126,7 +126,7 @@ def score(images, cond_palette, cond_valid, parses=None) -> dict:
     """Palette adherence of generated `images` (N,128,128,3) uint8 to the palettes they were conditioned on (`palette` (N,32) or (N,4,8), `palette_valid` (N,4) of the dataset row).
     `parses`: parse maps of the generated images; by default AnimeSeg computes them (extra `seg`). Returns per region dE, missing_rate and dE_penalised (see `adherence`),
     to be read against FLOOR and CHANCE."""
-    from dbfaces.seg import parse
+    from dbanifaces.seg import parse
 
     p = np.asarray(cond_palette, np.float32).reshape(len(images), 4, 8)
     return adherence(images, parse(images) if parses is None else parses, p, np.asarray(cond_valid), np.array([CHANCE[r] for r in REGIONS]))

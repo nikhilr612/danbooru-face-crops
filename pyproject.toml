@@ -1,5 +1,5 @@
 [project]
-name = "dbfaces"
+name = "dbanifaces"
 version = "0.2.0"
 description = "Loader and metrics for the Danbooru Face Crops 128 dataset (PyTorch and JAX + Grain)"
 readme = "README.md"
@@ -12,9 +12,9 @@ dependencies = ["numpy", "scipy"]
 [project.optional-dependencies]
 # Fetching the dataset and the metric weights from the Hugging Face Hub (a local path needs none of this).
 hub = ["huggingface_hub", "safetensors"]
-# dbfaces.torch: DataLoader and the PyTorch metrics backend.
+# dbanifaces.torch: DataLoader and the PyTorch metrics backend.
 torch = ["torch", "safetensors", "huggingface_hub"]
-# dbfaces.jax: Grain loader and the JAX metrics backend.
+# dbanifaces.jax: Grain loader and the JAX metrics backend.
 jax = ["jax", "grain", "safetensors", "huggingface_hub"]
 # meta.parquet (the table of strings) as a DataFrame.
 data = ["pandas", "pyarrow"]
@@ -22,14 +22,14 @@ data = ["pandas", "pyarrow"]
 seg = ["anime-seg"]
 # Rebuilding the dataset (build/).
 build = ["pandas", "pyarrow", "pillow", "requests", "huggingface_hub", "datasets"]
-dev = ["dbfaces[torch,jax,data]", "pytest", "ruff", "transformers", "pillow"]
+dev = ["dbanifaces[torch,jax,data]", "pytest", "ruff", "transformers", "pillow"]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dbfaces"]
+packages = ["src/dbanifaces"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

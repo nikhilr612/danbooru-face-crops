@@ -3,9 +3,9 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from dbfaces.jax.dino import DinoV2
-from dbfaces.metrics import Evaluator as _Evaluator
-from dbfaces.metrics import Reference
+from dbanifaces.jax.dino import DinoV2
+from dbanifaces.metrics import Evaluator as _Evaluator
+from dbanifaces.metrics import Reference
 
 
 @jax.jit

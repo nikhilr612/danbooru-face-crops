@@ -33,7 +33,7 @@ Release conditions for the crops:
 |---|---|---|
 | second face detector (filter) | deepghs `anime_face_detection` | MIT |
 | near-duplicate groups, embedding clusters | facebook/dinov2-base | Apache-2.0 |
-| `dbfaces` metrics (FD, KID, density/coverage, memorisation) and the `reference/` features | facebook/dinov2-large, fetched from the Hub at run time (not redistributed in the package); the reference features are numeric outputs of it | Apache-2.0 |
+| `dbanifaces` metrics (FD, KID, density/coverage, memorisation) and the `reference/` features | facebook/dinov2-large, fetched from the Hub at run time (not redistributed in the package); the reference features are numeric outputs of it | Apache-2.0 |
 | text rule | deepghs `paddleocr` (PaddleOCR det), deepghs `text_detection` | deepghs "other" (model-redistribution disclaimer, MIT text), MIT |
 
 ## Open items
@@ -52,4 +52,4 @@ The owner chose to skip the live Danbooru re-check for now. The release conditio
 
 ## Update 2026-11-15 (package)
 
-The `dbfaces` package (loaders, metrics, palette extractor) is MIT. Its metrics use DINOv2-L weights downloaded from the Hub at run time (pinned revision, SHA-256 checked). Palette adherence on generated images can use AnimeSeg through the optional `seg` extra; it is not installed or imported otherwise, and the licence position for AnimeSeg is unchanged (none stated).
+The `dbanifaces` package (loaders, metrics, palette extractor) is MIT. Its metrics use DINOv2-L weights downloaded from the Hub at run time (pinned revision, SHA-256 checked). Palette adherence on generated images can use AnimeSeg through the optional `seg` extra; it is not installed or imported otherwise, and the licence position for AnimeSeg is unchanged (none stated).

@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from dbfaces import weights as W
+from dbanifaces import weights as W
 
 
 class DinoV2:
