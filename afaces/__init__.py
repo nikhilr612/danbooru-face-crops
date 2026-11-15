@@ -2,6 +2,7 @@
 
     import afaces
     ds = afaces.load("path/to/anime-faces-128", "train", fields=("image", "tags"))
+    ds = afaces.load("nikhilr01/danbooru-anime-faces-128-npy", "train", fields=("image", "tags"))   # downloads only those files, then memory-maps them
     ds[0]                    # {"image": (128, 128, 3) uint8, "tags": (65,) int8}
     ds.batch(np.arange(64))  # fancy index (sorted internally), dict of arrays
     ds.subset(10_000)        # the first 10k rows: a nested stratified quick-eval subset
@@ -68,13 +69,26 @@ class Split:
         return self
 
 
+def resolve(root, split: str | None = None, fields=()) -> Path:
+    """A local directory is used as is. Otherwise `root` is a Hugging Face dataset repo id ("user/name"): the files needed for `split` and `fields` (plus tags.json) are downloaded
+    into the Hub cache and the snapshot directory is returned. Needs `huggingface_hub`; the arrays are memory-mapped from the cache."""
+    if Path(root).is_dir():
+        return Path(root)
+    if str(root).count("/") != 1 or str(root).startswith((".", "/")):
+        raise FileNotFoundError(f"{root} is neither a directory nor a Hugging Face repo id")
+    from huggingface_hub import snapshot_download
+    patterns = ["tags.json"] + ([f"{split}/{f}.npy" for f in fields] if split else [])
+    return Path(snapshot_download(str(root), repo_type="dataset", allow_patterns=patterns))
+
+
 def load(root, split: str = "train", fields=("image",)) -> Split:
-    return Split(Path(root), split, fields)
+    """`root` is a local directory or a Hub repo id such as "nikhilr01/danbooru-anime-faces-128-npy"."""
+    return Split(resolve(root, split, fields), split, fields)
 
 
 def tag_info(root) -> dict:
     """tags.json: names (column order = reliability order), group, exclusive, colour, auc, precision, recall, tier, positive_only."""
-    return json.load(open(Path(root) / "tags.json"))
+    return json.load(open(resolve(root) / "tags.json"))
 
 
 def reliable_tags(root, tiers=("high",)) -> list[int]:

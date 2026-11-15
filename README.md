@@ -2,7 +2,7 @@
 
 Tooling for the **Anime Faces 128** dataset: 210,000 head-and-neck anime portraits at 128 px (train 149,994 / validation 29,999 / test 30,007) with hull masks, part segmentation, palettes, 65 tags with measured reliability, landmarks and provenance. The data is published separately (Hugging Face Parquet, and memory-mappable `.npy` files with the same fields). This repository holds the loader and the scripts that built the dataset.
 
-Dataset card: see the Hugging Face dataset page, [nikhilr01/danbooru-anime-faces-128](https://huggingface.co/datasets/nikhilr01/danbooru-anime-faces-128) (`README.md` there), for the field list, filters, known limitations, terms and takedown, and `LICENSES.md` here for the licence audit. `thresholds.json` freezes every filter value; `SCHEMA.md` is the design document.
+Dataset card: see the Hugging Face dataset page, [nikhilr01/danbooru-anime-faces-128](https://huggingface.co/datasets/nikhilr01/danbooru-anime-faces-128) (`README.md` there; the arrays are in [nikhilr01/danbooru-anime-faces-128-npy](https://huggingface.co/datasets/nikhilr01/danbooru-anime-faces-128-npy)), for the field list, filters, known limitations, terms and takedown, and `LICENSES.md` here for the licence audit. `thresholds.json` freezes every filter value; `SCHEMA.md` is the design document.
 
 ## Loader
 
@@ -10,6 +10,8 @@ Dataset card: see the Hugging Face dataset page, [nikhilr01/danbooru-anime-faces
 import afaces
 
 ds = afaces.load("anime-faces-128", "train", fields=("image", "tags"))   # splits: train, val, test
+# or straight from the Hub: downloads only the files for those fields, then memory-maps them
+ds = afaces.load("nikhilr01/danbooru-anime-faces-128-npy", "train", fields=("image", "tags"))   # needs huggingface_hub
 ds[0]                      # {"image": (128, 128, 3) uint8, "tags": (65,) int8}
 ds.batch(np.arange(64))    # fancy-indexed batch
 ds.subset(10_000)          # nested stratified quick-eval subset (every prefix of a split is stratified)
