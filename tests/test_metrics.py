@@ -2,6 +2,7 @@ import numpy as np
 import scipy.linalg
 
 from dbanifaces.metrics import FD, Reference, density_coverage, frechet_distance, kid, knn_radii, memorised_fraction, threshold
+from dbanifaces.metrics.headline import copy_excess, fit_floor, headline, solve_tau
 
 
 def gauss(n, d=32, shift=0.0, scale=1.0, seed=0):
@@ -58,6 +59,21 @@ def test_reference_roundtrip(tmp_path):
     assert back.bank.shape == (3000, 16) and back.bank.dtype == np.float16 and back.features("val").shape == (1000, 16)
 
 
+def test_headline_anchors():
+    ns = np.array([1000, 2000, 5000, 10000])
+    a, b = fit_floor(ns, 5 + 80_000 / ns)
+    assert abs(a - 5) < 1e-6 and abs(b - 80_000) < 1e-3
+    p = {"a": a, "b": b, "tau": solve_tau(3000.0, 10_000, a, b)}
+    n = 10_000
+    floor = a + b / n
+    assert headline(floor, 0.0095, n, p) == 0.0  # real data: FD at the floor, copying at its calibrated rate (inside the tolerance)
+    assert headline(floor - 1.0, 0.0, n, p) == 0.0  # better than the floor is not rewarded
+    noise, copies = headline(3000.0, 0.0, n, p), headline(floor, 1.0, n, p)
+    assert abs(noise - copies) < 1e-9 and noise > 3  # copying the training set is exactly as bad as noise
+    assert headline(floor, 0.2, n, p) < copies < headline(floor + 1e3, 1.0, n, p)  # monotone in both terms
+    assert copy_excess(0.01, 100) == 0.0 and copy_excess(0.5, 100) > 0
+
+
 def test_evaluators_agree_across_backends(root):
     """The metrics are numpy on the features, so the two backends differ only through the features (5e-6 relative)."""
     import pytest
@@ -76,4 +92,4 @@ def test_evaluators_agree_across_backends(root):
         ev.update(x)
         out.append(ev.compute())
     for k in out[0]:
-        assert abs(out[0][k] - out[1][k]) <= 1e-3 * max(abs(out[0][k]), 1e-2), (k, out[0][k], out[1][k])
+        assert abs(out[0][k] - out[1][k]) <= 1e-3 * max(abs(out[0][k]), 1.0 if k == "headline" else 1e-2), (k, out[0][k], out[1][k])

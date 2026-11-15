@@ -1,6 +1,7 @@
 """Streaming evaluator for a training loop: feed generated batches, read the scores."""
 import numpy as np
 
+from dbanifaces.metrics.headline import headline
 from dbanifaces.metrics.kid import kid
 from dbanifaces.metrics.memorisation import max_cosine, memorised_fraction
 from dbanifaces.metrics.prdc import density_coverage
@@ -15,9 +16,10 @@ class Evaluator:
 
         ev = Evaluator(featurize, Reference.load())
         for batch in samples: ev.update(batch)   # uint8 NHWC, or float [-1, 1]
-        ev.compute()   # {"fd_dinov2": ..., "kid_dinov2": ..., "kid_dinov2_std": ..., "density": ..., "coverage": ..., "memorised_frac": ..., "n": ...}
+        ev.compute()   # {"fd_dinov2": ..., "kid_dinov2": ..., "kid_dinov2_std": ..., "density": ..., "coverage": ..., "memorised_frac": ..., "headline": ..., "n": ...}
 
     Use the same number of samples every time you compare runs: FD is biased upwards at small N (KID is not). Memorisation needs the 300 MB feature bank (downloaded on first use).
+    `headline` (lower is better, about 0 for real data; see `dbanifaces.metrics.headline`) needs both fd and memorisation, and is the only score that is high for a model that copies the training set.
     """
 
     def __init__(self, featurize, reference: Reference, search=max_cosine):
@@ -44,4 +46,6 @@ class Evaluator:
             out |= density_coverage(self.ref.real, self.ref.radii, f, self.ref.meta["k"])
         if "memorisation" in metrics:
             out["memorised_frac"] = memorised_fraction(f, self.ref.bank, self.ref.mem_thr, self.search)
+        if "fd_dinov2" in out and "memorised_frac" in out and "headline" in self.ref.meta:
+            out["headline"] = headline(out["fd_dinov2"], out["memorised_frac"], len(f), self.ref.meta["headline"])
         return out

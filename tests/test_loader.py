@@ -6,7 +6,7 @@ import dbanifaces
 
 def test_core(root):
     ds = dbanifaces.load("val", fields=("image", "tags", "post_id", "flags"), root=root)
-    assert len(ds) == len(np.load(f"{root}/val/post_id.npy", mmap_mode="r"))
+    assert len(ds) == len(np.load(dbanifaces.resolve(root, "val", ("post_id",)) / "val/post_id.npy", mmap_mode="r"))
     r = ds[3]
     assert r["image"].shape == (128, 128, 3) and r["image"].dtype == np.uint8 and r["tags"].dtype == np.int8
     b = ds.batch(np.array([5, 1, 5, 0]))
@@ -57,6 +57,6 @@ def test_default_root_order(root, monkeypatch):
     assert dbanifaces.default_root() == dbanifaces.DEFAULT_REPO
     monkeypatch.setenv("DBANIFACES_ROOT", root)
     assert dbanifaces.default_root() == root and dbanifaces.default_root("elsewhere") == "elsewhere"
-    ds = dbanifaces.load("val", fields=("post_id",))  # no root: DBANIFACES_ROOT is used, nothing is downloaded
-    assert len(ds) == len(np.load(f"{root}/val/post_id.npy", mmap_mode="r"))
+    ds = dbanifaces.load("val", fields=("post_id",))  # no root: DBANIFACES_ROOT is used
+    assert len(ds) == len(np.load(dbanifaces.resolve(root, "val", ("post_id",)) / "val/post_id.npy", mmap_mode="r"))
     assert len(dbanifaces.reliable_tags(("high",))) == 43

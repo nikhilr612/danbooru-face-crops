@@ -54,7 +54,7 @@ With `worker_count > 0`, Grain gives each worker every second (third, ...) recor
 
 ## Metrics
 
-Four distribution metrics, one per question, all on DINOv2 ViT-L/14 CLS features (1024-d), plus palette adherence for palette-conditioned models. They are deliberately few.
+Four distribution metrics, one per question, a single `headline` combining them, all on DINOv2 ViT-L/14 CLS features (1024-d), plus palette adherence for palette-conditioned models. They are deliberately few.
 
 | Metric | Answers | Notes |
 |---|---|---|
@@ -62,6 +62,7 @@ Four distribution metrics, one per question, all on DINOv2 ViT-L/14 CLS features
 | `kid_dinov2` | the same, unbiased in N | read this at 1-2k samples inside a training loop; mean and std over 100 subsets of 1,000 |
 | `density`, `coverage` | quality and diversity separately (Naeem et al. 2020) | k = 5 balls around 10,000 fixed real features; `coverage` is the one that drops when modes are missing |
 | `memorised_frac` | does it copy training images? | share of samples closer to the train set than 99% of held-out real images are; about 0.01 for a generator that generalises |
+| `headline` | one number to minimise | lower is better, about 0 for real data; FD excess over the real-data floor at your N plus a penalty for copying (below) |
 | palette adherence | does the output follow the conditioning palette? | `dbanifaces.palette.score`; dE per region against the conditioning palette, read against `FLOOR` and `CHANCE` |
 
 ```python
@@ -76,6 +77,29 @@ ev.reset()
 Both backends load the same pinned safetensors (HF `facebook/dinov2-large`, Apache-2.0, revision and SHA-256 checked) and resize with the same fixed bicubic matrix, so they give the same features: JAX versus PyTorch agree to 5e-6 relative on the CLS vector, and both agree with the HF `transformers` model run in float64 to about 1e-4 (`tests/test_dino.py`). The `Evaluator` computes the metrics themselves in numpy float64 from the features, so there is no backend difference beyond the features. `dbanifaces.metrics` also takes features from any extractor: `Evaluator(featurize, Reference.load())`.
 
 JAX note: by default JAX reserves most of the GPU's memory; set `XLA_PYTHON_CLIENT_PREALLOCATE=false` if the training run shares the card.
+
+### The headline number
+
+`ev.compute()["headline"]` (needs the FD and memorisation metrics, so any `compute()` without a metric subset) is one number to minimise:
+
+```
+headline = log10(1 + max(0, FD - floor(N))) + u / tau
+u        = max(0, memorised_frac - (0.01 + 3 SE)) / 0.99          SE = sqrt(0.01 * 0.99 / N)
+```
+
+`floor(N) = 1.08 + 81,370 / N` is the FD of real held-out images at the same N (fitted on test rows 1k to 10k; the measured values are 82.5, 41.7, 17.5, 9.1 at 1k, 2k, 5k, 10k), so a perfect generator scores about 0 at any N. `u` is the share of samples copied beyond the calibrated 1% and its sampling noise. The penalty is additive because copying leaves FD at its floor, so a product would stay 0. `tau = 0.279` is solved so that a generator that copies the training set and one that outputs Gaussian noise score the same ("equally worthless"; uniform and pink noise give FD within 2% of Gaussian, so the choice hardly matters). Both are stored in the reference (`Reference.meta["headline"]`, `scripts/make_headline.py`).
+
+| 2,000 test images, | `fd_dinov2` | `memorised_frac` | `headline` |
+|---|---|---|---|
+| real | 41.7 | 0.009 | 0.00 |
+| 5% train copies mixed in | 41.7 | 0.059 | 0.16 |
+| 20% train copies mixed in | 41.2 | 0.208 | 0.70 |
+| all train copies | 41.7 | 1.000 | 3.56 |
+| blur sigma 0.5 / 1 / 2 | 45.6 / 54.9 / 215 | 0.007 / 0.006 / 0.000 | 0.69 / 1.15 / 2.24 |
+| flipped upside down | 665 | 0.000 | 2.80 |
+| Gaussian noise | 3,776 | 0.000 | 3.57 |
+
+It is a convention, not a measurement: `tau` encodes "copying is as bad as noise", and 20% copies scores like a mild blur. Read `memorised_frac` next to it. Compare headline values only at the same N, and use it to select models rather than as a training loss (it is built on DINOv2 features and will eventually be gamed). It has not been checked against human ratings.
 
 ### Reading the numbers
 
@@ -110,7 +134,7 @@ Palette adherence: a real image scores 4.6 / 5.1 / 7.7 / 1.9 dE (skin / hair / e
 
 Cached features: `reference/dinov2l_{train,val,test}.npy` in the npy release hold the CLS features of every row (float16, row for row the same as the split's arrays; `Reference.features(split)`), so floors and your own analyses need no GPU.
 
-Tests (`pytest`; set `DBANIFACES_ROOT` to a local npy release for the data tests): loaders (core, torch with workers, Grain with workers), JAX versus PyTorch versus `transformers` DINOv2, the metric formulas (FD against the `sqrtm` formula, KID, density/coverage, memorisation), palette extraction and adherence, and the two backends' Evaluators against each other.
+Tests (`pytest`; set `DBANIFACES_ROOT` to a local npy release or its Hub repo id for the data tests): loaders (core, torch with workers, Grain with workers), JAX versus PyTorch versus `transformers` DINOv2, the metric formulas (FD against the `sqrtm` formula, KID, density/coverage, memorisation), palette extraction and adherence, and the two backends' Evaluators against each other.
 
 ## Build scripts (`build/`)
 

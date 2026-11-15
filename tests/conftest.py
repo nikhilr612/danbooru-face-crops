@@ -9,8 +9,8 @@ import pytest
 
 @pytest.fixture(scope="session")
 def root():
-    """A local copy of the npy release (set DBANIFACES_ROOT); tests that need the data are skipped without it."""
+    """The npy release: a local copy or a Hub repo id (set DBANIFACES_ROOT); tests that need the data are skipped without it."""
     p = os.environ.get("DBANIFACES_ROOT")
-    if not p or not Path(p).is_dir():
+    if not p or not (Path(p).is_dir() or p.count("/") == 1):
         pytest.skip("DBANIFACES_ROOT not set")
     return p
