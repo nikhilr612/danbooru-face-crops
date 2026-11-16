@@ -39,3 +39,6 @@ line-length = 180
 target-version = "py310"
 src = ["src", "tests", "scripts"]
 extend-exclude = ["build"]
+
+[tool.ruff.lint.per-file-ignores]
+"examples/*" = ["F841"]  # the loop skeletons leave the training step as a comment

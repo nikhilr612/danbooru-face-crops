@@ -26,6 +26,7 @@ class Reference:
     meta: dict
     root: Path | str = field(default="", repr=False)
     split: str = "train"
+    revision: str | None = field(default=None, repr=False)
     _bank: np.ndarray | None = field(default=None, repr=False)
 
     @classmethod
@@ -46,20 +47,20 @@ class Reference:
             np.save(d / FEATURES.format(split), np.asarray(f, np.float16))
 
     @classmethod
-    def load(cls, root: str | Path | None = None, split: str = "train") -> "Reference":
+    def load(cls, root: str | Path | None = None, split: str = "train", revision: str | None = None) -> "Reference":
         """`root`: a local release directory or the Hub repo id of the npy release (downloads the small stats file only); default as in `dbanifaces.default_root`.
 
         `split`: which split the real-data statistics (FD, KID, density and coverage) describe. "train" is the default and the usual one. "val" or "test" rebuild them from that split's cached
         features (about 60 MB, downloaded on first use), so a model can be selected against "val" and reported once against "test", neither of which it was trained on. The memorisation
-        bank and threshold are always the train split's, and the headline parameters are those fitted for the chosen split."""
+        bank and threshold are always the train split's, and the headline parameters are those fitted for the chosen split. `revision`: as in `dbanifaces.load`."""
         from dbanifaces.data import SPLITS, default_root
 
         if split not in SPLITS:
             raise ValueError(f"split must be one of {SPLITS}")
         root = default_root(root)
-        d = _fetch(root, [STATS])
+        d = _fetch(root, [STATS], revision)
         z = np.load(d / STATS)
-        ref = cls(FD(z["mu"], z["sigma"]), z["real"], z["radii"], float(z["mem_thr"]), json.loads(str(z["meta"])), root)
+        ref = cls(FD(z["mu"], z["sigma"]), z["real"], z["radii"], float(z["mem_thr"]), json.loads(str(z["meta"])), root, revision=revision)
         if split != "train":
             f = np.asarray(ref.features(split), np.float32)
             ref.fd, ref.real, ref.split = FD.from_features(f), f[:REAL_N], split
@@ -73,7 +74,7 @@ class Reference:
 
     def features(self, split: str) -> np.ndarray:
         """float16 CLS features of every row of `split`, memory-mapped (downloaded on first use)."""
-        return np.load(_fetch(self.root, [FEATURES.format(split)]) / FEATURES.format(split), mmap_mode="r")
+        return np.load(_fetch(self.root, [FEATURES.format(split)], self.revision) / FEATURES.format(split), mmap_mode="r")
 
     @property
     def bank(self) -> np.ndarray:
@@ -83,9 +84,11 @@ class Reference:
         return self._bank
 
 
-def _fetch(root: str | Path, patterns: list[str]) -> Path:
+def _fetch(root: str | Path, patterns: list[str], revision: str | None = None) -> Path:
     if Path(root).is_dir():
         return Path(root)
     from huggingface_hub import snapshot_download
 
-    return Path(snapshot_download(str(root), repo_type="dataset", allow_patterns=patterns))
+    from dbanifaces.data import default_revision
+
+    return Path(snapshot_download(str(root), repo_type="dataset", revision=default_revision(revision), allow_patterns=patterns))

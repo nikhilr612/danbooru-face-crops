@@ -7,6 +7,8 @@ pip install "dbanifaces[torch] @ git+https://github.com/nikhilr612/danbooru-face
 pip install "dbanifaces[jax]   @ git+https://github.com/nikhilr612/danbooru-face-crops"     # JAX + Grain loader + metrics
 ```
 
+The `jax` extra installs the CPU build of JAX. For a GPU, install the matching build yourself, for example `pip install "jax[cuda13]"` (see the JAX installation guide for your CUDA version); without it the Evaluator runs DINOv2-L on the CPU, which is orders of magnitude slower.
+
 The base install needs only numpy and scipy. Everything else is an extra, and no backend is imported until you import it (`dbanifaces.torch`, `dbanifaces.jax`):
 
 | Extra | Installs | For |
@@ -32,7 +34,7 @@ ds.subset(10_000)          # nested stratified quick-eval subset (every prefix o
 dbanifaces.reliable_tags(("high",))    # tag columns with AUC >= 0.97
 ```
 
-Without `root`, the `DBANIFACES_ROOT` environment variable is used if set (a local copy or a repo id), else the official release `dbanifaces.DEFAULT_REPO`. Given a Hub repo id, only the files for the split and fields you ask for are downloaded, then memory-mapped from the cache. Fields: `image`, `hull`, `parse`, `mouth_fill`, `landmarks`, `palette`, `palette_valid`, `tags`, `crop_box`, `group`, `bg_score`, `flags`, `post_id`, `rating`, `score`, `fav_count`, `created_year`, `popularity_pct`; strings and ragged data are in `meta.parquet` per split. `tags.json` gives tag names (columns are ordered by reliability), groups, AUC / precision / recall, tier and which tags are positive-only.
+Without `root`, the `DBANIFACES_ROOT` environment variable is used if set (a local copy or a repo id), else the official release `dbanifaces.DEFAULT_REPO`. Given a Hub repo id, only the files for the split and fields you ask for are downloaded, then memory-mapped from the cache. The Hub release is read at a pinned tag (`dbanifaces.DEFAULT_REVISION`, currently `v1.0.0`, the release this package version was tested against), so a rerun never silently sees different data; pass `revision="main"` (or set `DBANIFACES_REVISION`) to follow the latest, or a tag or commit hash to pin another. Fields: `image`, `hull`, `parse`, `mouth_fill`, `landmarks`, `palette`, `palette_valid`, `tags`, `crop_box`, `group`, `bg_score`, `flags`, `post_id`, `rating`, `score`, `fav_count`, `created_year`, `popularity_pct`; strings and ragged data are in `meta.parquet` per split. `tags.json` gives tag names (columns are ordered by reliability), groups, AUC / precision / recall, tier and which tags are positive-only.
 
 **PyTorch** (`dbanifaces.torch`): a `Dataset` that reads whole batches with one sorted index, and a `DataLoader` helper.
 
@@ -51,6 +53,10 @@ for batch in loader(ds, batch_size=128, seed=0, num_epochs=None, worker_count=4)
 ```
 
 With `worker_count > 0`, Grain gives each worker every second (third, ...) record and batches inside the worker, so batch contents and order differ from `worker_count=0`; the shuffle is still seeded and reproducible.
+
+## Examples
+
+`examples/quickstart.py` (load, inspect, pick tags), and training-loop skeletons with the Evaluator on the validation reference, `examples/torch_loop.py` and `examples/jax_loop.py` (the generator is a placeholder; Grain workers re-import the script, hence its `__main__` guard).
 
 ## Metrics
 

@@ -60,3 +60,23 @@ def test_default_root_order(root, monkeypatch):
     ds = dbanifaces.load("val", fields=("post_id",))  # no root: DBANIFACES_ROOT is used
     assert len(ds) == len(np.load(dbanifaces.resolve(root, "val", ("post_id",)) / "val/post_id.npy", mmap_mode="r"))
     assert len(dbanifaces.reliable_tags(("high",))) == 43
+
+
+def test_default_revision_order(monkeypatch):
+    monkeypatch.delenv("DBANIFACES_REVISION", raising=False)
+    assert dbanifaces.default_revision() == dbanifaces.DEFAULT_REVISION
+    monkeypatch.setenv("DBANIFACES_REVISION", "main")
+    assert dbanifaces.default_revision() == "main" and dbanifaces.default_revision("abc123") == "abc123"
+
+
+def test_hub_revision_pinned(tmp_path, monkeypatch):
+    """The Hub is read at the pinned tag, an explicit revision overrides it, and a local directory ignores it."""
+    import huggingface_hub
+
+    seen = []
+    monkeypatch.setattr(huggingface_hub, "snapshot_download", lambda repo, **kw: seen.append(kw["revision"]) or str(tmp_path))
+    monkeypatch.delenv("DBANIFACES_REVISION", raising=False)
+    dbanifaces.resolve("user/name")
+    dbanifaces.resolve("user/name", revision="main")
+    dbanifaces.resolve(str(tmp_path), revision="main")  # local: nothing fetched
+    assert seen == [dbanifaces.DEFAULT_REVISION, "main"]

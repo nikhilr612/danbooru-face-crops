@@ -3,6 +3,7 @@
     import dbanifaces
     ds = dbanifaces.load("train", fields=("image", "tags"))                       # the official release: downloads only those files, then memory-maps them
     ds = dbanifaces.load("train", fields=("image", "tags"), root="/data/faces")  # a local copy, or another Hub repo id
+    ds = dbanifaces.load("train", revision="main")                                # the Hub release is pinned to a tag by default; "main" follows the latest
     ds[0]                    # {"image": (128, 128, 3) uint8, "tags": (65,) int8}
     ds.batch(np.arange(64))  # fancy index (sorted internally), dict of arrays
     ds.subset(10_000)        # the first 10k rows: a nested stratified quick-eval subset
@@ -72,6 +73,7 @@ class Split:
 
 
 DEFAULT_REPO = "nikhilr01/danbooru-face-crops-128-npy"
+DEFAULT_REVISION = "v1.0.0"  # the dataset release this package version was tested against (a tag on the Hub repo)
 
 
 def default_root(root=None):
@@ -79,7 +81,12 @@ def default_root(root=None):
     return root if root is not None else os.environ.get("DBANIFACES_ROOT") or DEFAULT_REPO
 
 
-def resolve(root=None, split: str | None = None, fields=()) -> Path:
+def default_revision(revision=None):
+    """`revision` if given, else the DBANIFACES_REVISION environment variable, else `DEFAULT_REVISION`: a Hub tag, branch ("main" follows the latest) or commit hash. Ignored for a local directory."""
+    return revision if revision is not None else os.environ.get("DBANIFACES_REVISION") or DEFAULT_REVISION
+
+
+def resolve(root=None, split: str | None = None, fields=(), revision=None) -> Path:
     """A local directory is used as is. Otherwise `root` is a Hugging Face dataset repo id ("user/name"): the files needed for `split` and `fields` (plus tags.json) are downloaded
     into the Hub cache and the snapshot directory is returned. Needs `huggingface_hub`; the arrays are memory-mapped from the cache. `root=None`: see `default_root`."""
     root = default_root(root)
@@ -89,22 +96,23 @@ def resolve(root=None, split: str | None = None, fields=()) -> Path:
         raise FileNotFoundError(f"{root} is neither a directory nor a Hugging Face repo id")
     from huggingface_hub import snapshot_download
     patterns = ["tags.json"] + ([f"{split}/{f}.npy" for f in fields] if split else [])
-    return Path(snapshot_download(str(root), repo_type="dataset", allow_patterns=patterns))
+    return Path(snapshot_download(str(root), repo_type="dataset", revision=default_revision(revision), allow_patterns=patterns))
 
 
-def load(split: str = "train", fields=("image",), *, root=None) -> Split:
-    """`root`: a local directory or a Hub repo id; by default the DBANIFACES_ROOT environment variable, else the official release (`DEFAULT_REPO`)."""
-    return Split(resolve(root, split, fields), split, fields)
+def load(split: str = "train", fields=("image",), *, root=None, revision=None) -> Split:
+    """`root`: a local directory or a Hub repo id; by default the DBANIFACES_ROOT environment variable, else the official release (`DEFAULT_REPO`).
+    `revision`: the Hub tag, branch or commit to read (see `default_revision`; the default is the release this package version was tested against)."""
+    return Split(resolve(root, split, fields, revision), split, fields)
 
 
-def tag_info(root=None) -> dict:
+def tag_info(root=None, *, revision=None) -> dict:
     """tags.json: names (column order = reliability order), group, exclusive, colour, auc, precision, recall, tier, positive_only."""
-    return json.load(open(resolve(root) / "tags.json"))
+    return json.load(open(resolve(root, revision=revision) / "tags.json"))
 
 
-def reliable_tags(tiers=("high",), *, root=None) -> list[int]:
+def reliable_tags(tiers=("high",), *, root=None, revision=None) -> list[int]:
     """Column indices of the tags in the given reliability tiers (high: AUC >= 0.97, medium: >= 0.93, low: below), measured against Danbooru's own tags."""
-    t = tag_info(root)
+    t = tag_info(root, revision=revision)
     return [i for i, x in enumerate(t["tier"]) if x in tiers]
 
 
